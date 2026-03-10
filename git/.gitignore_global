@@ -1,0 +1,5 @@
+# Cursor rules (local only, not committed)
+.cursor/rules/angular-copilot-instructions.mdc
+
+# Local Angular app settings (do not commit)
+SOA/Applications/Web/AngularApp/assets/appSettings.json

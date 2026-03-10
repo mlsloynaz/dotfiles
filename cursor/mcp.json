@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "mssql-QASandbox8": {
+      "command": "node",
+      "args": [
+        "C:\\Code\\AI-Examples\\mcp\\mcp-sqlserver\\dist\\index.js"
+      ],
+      "env": {
+        "MSSQL_ENVIRONMENT": "staging",
+        "MSSQL_CLIENT": "QASandbox8",
+        "MSSQL_CONFIG_PATH": "C:\\Code\\AI-Examples\\mcp\\mcp-sqlserver\\dist\\connections.json"
+      }
+     }
+  }
+}

@@ -1,0 +1,17 @@
+{
+    "window.commandCenter": true,
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "cursor.composer.queueMessageDefaultBehavior": "queue",
+    "workbench.colorTheme": "PowerShell ISE",
+    "explorer.confirmDelete": false,
+    "files.autoSave": "afterDelay",
+    "git.enableSmartCommit": true,
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/bin/**": true,
+        "**/obj/**": true
+    }
+}

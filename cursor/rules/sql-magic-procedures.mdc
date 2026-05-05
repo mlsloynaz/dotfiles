@@ -1,0 +1,52 @@
+---
+
+description: SQL — magic_* without IF NOT EXISTS; no PD ticket refs in comments
+
+globs: **/*.sql
+
+alwaysApply: false
+
+---
+
+
+
+# Comments
+
+
+
+Do **not** put Jira / ticket references (for example `PD-####`, `UB-#####`) in SQL comments. Use neutral, intent-focused comments; traceability belongs in commit messages, PRs, and script filenames—not inline in the database object text.
+
+
+
+# `magic_*` procedures and existence checks
+
+
+
+When adding or updating via `magic_*` stored procedures (for example `magic_AddSetting`, `magic_AddColumn`, `magic_AddLocalePageString`, `magic_AddFeature`, `magic_AddCustomProcCall`, and similar `dbo.magic_*` helpers), **do not** wrap the `EXEC` in `IF NOT EXISTS`, `IF NOT EXISTS (SELECT …)`, or other manual “only if missing” guards.
+
+
+
+Those procedures are written to be safe to run repeatedly (idempotent or internally guarded). Extra outer checks add noise, duplicate logic, and can drift from how the magic proc behaves.
+
+
+
+```sql
+
+-- Avoid
+
+IF NOT EXISTS (SELECT 1 FROM Settings WHERE SettingName = 'MY_SETTING')
+
+    EXEC magic_AddSetting @SettingName = 'MY_SETTING', …;
+
+
+
+-- Prefer
+
+EXEC magic_AddSetting @SettingName = 'MY_SETTING', …;
+
+```
+
+
+
+Use explicit `IF NOT EXISTS` / conditional DDL when you are **not** going through `magic_*` and the script must be defensive in plain T-SQL.
+

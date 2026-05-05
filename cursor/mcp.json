@@ -1,15 +1,16 @@
 {
   "mcpServers": {
-    "mssql-QASandbox8": {
+    "mssql": {
+      "type": "stdio",
       "command": "node",
       "args": [
         "C:\\Code\\AI-Examples\\mcp\\mcp-sqlserver\\dist\\index.js"
       ],
       "env": {
         "MSSQL_ENVIRONMENT": "staging",
-        "MSSQL_CLIENT": "QASandbox8",
-        "MSSQL_CONFIG_PATH": "C:\\Code\\AI-Examples\\mcp\\mcp-sqlserver\\dist\\connections.json"
+        "MSSQL_CLIENT": "QASandbox10",
+        "MSSQL_CONFIG_PATH": "C:\\Users\\malu.loynaz\\credentials\\msp-sql-credentials.json"
       }
-     }
+    }
   }
 }

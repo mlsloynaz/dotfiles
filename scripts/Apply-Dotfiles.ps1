@@ -6,6 +6,7 @@
     - Symlinks: Replaces target config files with symbolic links to this repo. Requires Administrator for file symlinks.
     - Copy: Copies files from dotfiles to the normal config locations. Use when you cannot run as Administrator.
     The .cursor\skills junction is created in both modes (no admin required for junction).
+    User-level Cursor rules (.mdc) are synced from dotfiles\cursor\rules to %USERPROFILE%\.cursor\rules.
 
 .PARAMETER Mode
     Symlinks = create symlinks (run as Administrator)
@@ -37,6 +38,33 @@ function Ensure-ParentPath {
     }
 }
 
+function Sync-CursorRules {
+    param([string]$Mode)
+    $rulesSrc = Join-Path $dotfiles "cursor\rules"
+    $rulesDst = Join-Path $cursorDir "rules"
+    if (-not (Test-Path -LiteralPath $rulesSrc)) {
+        Write-Warning "Dotfiles cursor rules folder not found: $rulesSrc. Skipping rules sync."
+        return
+    }
+    if ($Mode -eq 'Copy') {
+        Ensure-ParentPath -Path $rulesDst
+        Copy-Item -Path (Join-Path $rulesSrc '*') -Destination $rulesDst -Recurse -Force
+        Write-Host "Copied cursor rules: $rulesSrc -> $rulesDst"
+        return
+    }
+    if (Test-Path -LiteralPath $rulesDst) {
+        $item = Get-Item -LiteralPath $rulesDst -Force
+        if ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+            Remove-Item -LiteralPath $rulesDst -Force
+        } else {
+            Remove-Item -LiteralPath $rulesDst -Recurse -Force
+        }
+    }
+    Ensure-ParentPath -Path $rulesDst
+    New-Item -ItemType SymbolicLink -Path $rulesDst -Target $rulesSrc -Force | Out-Null
+    Write-Host "Symlink: $rulesDst -> $rulesSrc"
+}
+
 function New-SkillsJunction {
     $linkPath = Join-Path $cursorDir "skills"
     $targetPath = Join-Path $dotfiles "cursor\skills"
@@ -57,11 +85,32 @@ function New-SkillsJunction {
     Write-Host "Junction created: .cursor\skills -> dotfiles\cursor\skills"
 }
 
+function New-DirJunction {
+    param([string]$LinkPath, [string]$TargetPath, [string]$Label)
+    if (-not (Test-Path -LiteralPath $TargetPath)) {
+        Write-Warning "Dotfiles source not found: $TargetPath. Skipping $Label."
+        return
+    }
+    if (Test-Path -LiteralPath $LinkPath) {
+        $item = Get-Item -LiteralPath $LinkPath -Force
+        if ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+            Write-Host "Junction $Label already exists."
+            return
+        }
+        Write-Warning "$LinkPath exists and is not a junction. Remove it manually to replace with junction."
+        return
+    }
+    Ensure-ParentPath -Path $LinkPath
+    cmd /c mklink /J "`"$LinkPath`"" "`"$TargetPath`""
+    Write-Host "Junction created: $Label"
+}
+
 # --- Skills junction (both modes, no admin required) ---
 Ensure-ParentPath -Path $cursorDir
 New-SkillsJunction
 
 if ($Mode -eq 'Copy') {
+    Sync-CursorRules -Mode Copy
     # Copy files from dotfiles to target locations
     $pairs = @(
         @{ Src = "cursor\settings.json";     Dst = (Join-Path $cursorUser "settings.json") }
@@ -80,6 +129,20 @@ if ($Mode -eq 'Copy') {
         Copy-Item -LiteralPath $src -Destination $p.Dst -Force
         Write-Host "Copied: $($p.Src) -> $($p.Dst)"
     }
+    # Copy directories
+    $dirs = @(
+        @{ Src = "bd-repo.cursor"; Dst = (Join-Path $env:USERPROFILE "bd-repo.cursor") }
+        @{ Src = "credentials";    Dst = (Join-Path $env:USERPROFILE "credentials") }
+    )
+    foreach ($d in $dirs) {
+        $src = Join-Path $dotfiles $d.Src
+        if (-not (Test-Path -LiteralPath $src)) {
+            Write-Warning "Source not found: $src"
+            continue
+        }
+        Copy-Item -Path $src -Destination $d.Dst -Recurse -Force
+        Write-Host "Copied dir: $($d.Src) -> $($d.Dst)"
+    }
     Write-Host "Copy mode done."
     exit 0
 }
@@ -89,6 +152,12 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     Write-Warning "Symlinks mode requires Administrator. Right-click PowerShell -> Run as administrator, or use -Mode Copy."
     exit 1
 }
+
+Sync-CursorRules -Mode Symlinks
+
+# Directory junctions (no admin required)
+New-DirJunction -LinkPath (Join-Path $env:USERPROFILE "bd-repo.cursor") -TargetPath (Join-Path $dotfiles "bd-repo.cursor") -Label "bd-repo.cursor"
+New-DirJunction -LinkPath (Join-Path $env:USERPROFILE "credentials")    -TargetPath (Join-Path $dotfiles "credentials")    -Label "credentials"
 
 $fileLinks = @(
     @{ TargetPath = (Join-Path $cursorUser "settings.json");     LinkTarget = (Join-Path $dotfiles "cursor\settings.json") }

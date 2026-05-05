@@ -1,0 +1,31 @@
+---
+description: ByDesign.bd only — handbook paths, PD/UB, SQL layout, diagrams in 00-Topic/media, HTML dropdown single-source, agent behavior
+alwaysApply: true
+---
+
+# ByDesign.bd — single source (project-local)
+
+This rule file lives **only** in the **ByDesign.bd** repository. It applies when this workspace is open; other projects do not load it.
+
+Follow the handbook for file placement (Projects / ToOrganize), **PD-xxxx** / **UB-xxxx** and topic from titles, research under OneDrive Projects, **ticket ids in comments** (SQL headers only), **SQL scripts (single blank line between statements/blocks)**, SQL / .NET / Jest defaults, assistant behavior, and **topic diagrams** (below).
+
+**Treat the handbook as authoritative** for those topics. Do not rely on ad hoc “rule by rule” restatements in chat when the handbook already covers them.
+
+@.cursor/CURSOR-AI-RULES-CONSOLIDATED.md
+
+**Cursor User Rules:** remove any **ByDesign-specific** bullets that duplicate the handbook (paths, PD/UB, OneDrive, SQL standards, IPCA, Jest, ticket-in-comments, etc.). Keep User Rules **short** for **global** preferences only (tone, cross-repo habits, tools) that are **not** in the handbook.
+
+When files match AngularApp paths, also apply:
+
+@.cursor/rules/angular-copilot-instructions.mdc
+
+## Topic ERD / flow diagrams (Mermaid) and `media`
+
+When you create an **ERD**, **flow**, or other **diagram** for a **topic** (PD journal / `00-Topic` work or a top-level `00-*` topic folder under Projects):
+
+1. **Format:** Prefer **Mermaid** (`.mmd` with a `mermaid` fenced block, or a `.md` file whose body is the diagram) so the same source can render in editors and tooling.
+2. **Location:** Put files under the topic’s **`media`** folder — **`00-Topic/media`** when using `...\Documents\Projects\PD\00-Topic\`, **or** `...\Documents\Projects\00-<Topic>\media\` when the topic is an `00-*` folder at the Projects root (see `tools/organize-00-topic-folders.ps1`). **If `media` does not exist, create it** (do not scatter diagrams only loose in the topic root unless the user says otherwise).
+3. **Single source:** Keep **one canonical diagram definition per variant** under `media/`; link or load from there elsewhere.
+4. **HTML / journal:** If the **HTML already has a diagram dropdown** (or similar UI), **render the diagram in that control** by **reading from the `media` file** (e.g. fetch + client render, or server include path) — **do not duplicate** the full Mermaid (or SVG) source again in the HTML body. If no dropdown exists, you may embed or link once as the user asks; still prefer **`media/`** as the source of truth.
+
+Details and path tables: **@.cursor/CURSOR-AI-RULES-CONSOLIDATED.md** (topic diagrams section).

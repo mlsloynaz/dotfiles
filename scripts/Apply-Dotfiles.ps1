@@ -7,6 +7,7 @@
     - Copy: Copies files from dotfiles to the normal config locations. Use when you cannot run as Administrator.
     The .cursor\skills junction is created in both modes (no admin required for junction).
     User-level Cursor rules (.mdc) are synced from dotfiles\cursor\rules to %USERPROFILE%\.cursor\rules.
+    Claude Code user config is synced from dotfiles\claude to %USERPROFILE%\.claude (policy-limits, commands junction, optional settings.json / mcp.json).
 
 .PARAMETER Mode
     Symlinks = create symlinks (run as Administrator)
@@ -29,6 +30,8 @@ $ErrorActionPreference = 'Stop'
 $dotfiles = Join-Path $env:USERPROFILE "dotfiles"
 $cursorUser = Join-Path $env:APPDATA "Cursor\User"
 $cursorDir = Join-Path $env:USERPROFILE ".cursor"
+$claudeHome = Join-Path $env:USERPROFILE ".claude"
+$claudeSrc = Join-Path $dotfiles "claude"
 
 function Ensure-ParentPath {
     param([string]$Path)
@@ -105,12 +108,80 @@ function New-DirJunction {
     Write-Host "Junction created: $Label"
 }
 
+function Sync-ClaudeCopy {
+    if (-not (Test-Path -LiteralPath $claudeSrc)) {
+        Write-Warning "Dotfiles claude folder not found: $claudeSrc. Skipping Claude sync."
+        return
+    }
+    Ensure-ParentPath -Path $claudeHome
+    $policySrc = Join-Path $claudeSrc "policy-limits.json"
+    if (Test-Path -LiteralPath $policySrc) {
+        Copy-Item -LiteralPath $policySrc -Destination (Join-Path $claudeHome "policy-limits.json") -Force
+        Write-Host "Copied: claude\policy-limits.json -> $claudeHome\policy-limits.json"
+    }
+    $commandsSrc = Join-Path $claudeSrc "commands"
+    if (Test-Path -LiteralPath $commandsSrc) {
+        $commandsDst = Join-Path $claudeHome "commands"
+        Ensure-ParentPath -Path $commandsDst
+        Copy-Item -Path (Join-Path $commandsSrc '*') -Destination $commandsDst -Recurse -Force
+        Write-Host "Copied: claude\commands\ -> $commandsDst"
+    }
+    foreach ($name in @('settings.json', 'mcp.json')) {
+        $src = Join-Path $claudeSrc $name
+        if (Test-Path -LiteralPath $src) {
+            Copy-Item -LiteralPath $src -Destination (Join-Path $claudeHome $name) -Force
+            Write-Host "Copied: claude\$name -> $claudeHome\$name"
+        } else {
+            Write-Host "Skipped (not in dotfiles): claude\$name — copy from settings.example.json / mcp.example.json if needed."
+        }
+    }
+}
+
+function Sync-ClaudeSymlinks {
+    if (-not (Test-Path -LiteralPath $claudeSrc)) {
+        Write-Warning "Dotfiles claude folder not found: $claudeSrc. Skipping Claude sync."
+        return
+    }
+    Ensure-ParentPath -Path $claudeHome
+    $policySrc = Join-Path $claudeSrc "policy-limits.json"
+    if (Test-Path -LiteralPath $policySrc) {
+        $policyDst = Join-Path $claudeHome "policy-limits.json"
+        if (Test-Path -LiteralPath $policyDst) {
+            $cur = Get-Item -LiteralPath $policyDst -Force
+            if ($cur.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+                Remove-Item -LiteralPath $policyDst -Force
+            } else {
+                Remove-Item -LiteralPath $policyDst -Force
+            }
+        }
+        New-Item -ItemType SymbolicLink -Path $policyDst -Target $policySrc -Force | Out-Null
+        Write-Host "Symlink: $policyDst -> $policySrc"
+    }
+    foreach ($name in @('settings.json', 'mcp.json')) {
+        $src = Join-Path $claudeSrc $name
+        if (-not (Test-Path -LiteralPath $src)) { continue }
+        $dst = Join-Path $claudeHome $name
+        if (Test-Path -LiteralPath $dst) {
+            $cur = Get-Item -LiteralPath $dst -Force
+            if ($cur.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+                Remove-Item -LiteralPath $dst -Force
+            } else {
+                Remove-Item -LiteralPath $dst -Force
+            }
+        }
+        New-Item -ItemType SymbolicLink -Path $dst -Target $src -Force | Out-Null
+        Write-Host "Symlink: $dst -> $src"
+    }
+    New-DirJunction -LinkPath (Join-Path $claudeHome "commands") -TargetPath (Join-Path $claudeSrc "commands") -Label "claude commands"
+}
+
 # --- Skills junction (both modes, no admin required) ---
 Ensure-ParentPath -Path $cursorDir
 New-SkillsJunction
 
 if ($Mode -eq 'Copy') {
     Sync-CursorRules -Mode Copy
+    Sync-ClaudeCopy
     # Copy files from dotfiles to target locations
     $pairs = @(
         @{ Src = "cursor\settings.json";     Dst = (Join-Path $cursorUser "settings.json") }
@@ -154,6 +225,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 }
 
 Sync-CursorRules -Mode Symlinks
+Sync-ClaudeSymlinks
 
 # Directory junctions (no admin required)
 New-DirJunction -LinkPath (Join-Path $env:USERPROFILE "bd-repo.cursor") -TargetPath (Join-Path $dotfiles "bd-repo.cursor") -Label "bd-repo.cursor"

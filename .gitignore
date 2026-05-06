@@ -1,0 +1,3 @@
+# Claude: local configs with secrets (use *.example.json in repo; copy to these names locally)
+claude/settings.json
+claude/mcp.json

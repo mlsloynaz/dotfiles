@@ -10,6 +10,7 @@ Config files synced to GitHub. Edit here (or in the app); keep this repo as sour
 |----------|---------------------|-------------------|
 | `cursor/` | `settings.json`, `keybindings.json`, `mcp.json` | `%APPDATA%\Cursor\User\` and `%USERPROFILE%\.cursor\` |
 | `cursor/skills/` | (folder) | `%USERPROFILE%\.cursor\skills` (junction) |
+| `claude/` | `policy-limits.json`, `commands/`, optional `settings.json` / `mcp.json` (gitignored) | `%USERPROFILE%\.claude\` — see [claude/README.md](claude/README.md) |
 | `git/`   | `.gitconfig`, `.gitignore_global`  | `%USERPROFILE%\` |
 
 ## Apply dotfiles (one script)
@@ -48,3 +49,4 @@ In both modes the script also ensures `.cursor\skills` is a junction to `dotfile
 - `~/.gitconfig-personal` and `~/.gitconfig-work` (identity; add to dotfiles only if you want and they have no secrets).
 - Any file with passwords or API keys.
 - **mcp.json** may contain machine-specific paths; edit per machine if needed.
+- **Claude** `claude/settings.json` and `claude/mcp.json` are gitignored when present; use `claude/*.example.json` as templates ([claude/README.md](claude/README.md)).

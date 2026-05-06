@@ -1,0 +1,20 @@
+{
+  "servers": {
+    "angular-cli": {
+      "command": "npx",
+      "args": ["@angular/cli", "mcp"]
+    },
+    "atlassian": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-jira"
+      ],
+      "env": {
+        "JIRA_URL": "https://your-org.atlassian.net",
+        "JIRA_API_TOKEN": "PASTE_ATLASSIAN_API_TOKEN_HERE",
+        "JIRA_EMAIL": "you@company.com"
+      }
+    }
+  }
+}

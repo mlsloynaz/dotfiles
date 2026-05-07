@@ -6,6 +6,8 @@
 	path = ~/.gitconfig-work
 [includeIf "gitdir:C:/Code/ByDesign.Intranet/"]
 	path = ~/.gitconfig-work
+[include]
+	path = ~/.gitconfig-aliases
 
 [core]
 	autocrlf = true
@@ -17,89 +19,6 @@
 	cmd = "'' "
 	trustExitCode = false
 	keepBackup = false
-[alias]
-	# just an easier to remember alias for the first time you push a branch to origin
-	firstpush = ! git rev-parse --abbrev-ref HEAD | xargs git push --set-upstream origin
- 
-	# dd = double delete. This will delete the named branch on local and on origin. Usage = dd {branchName}
-	dd = "!f() { git branch -D $1; git push --delete origin $1; }; f"
- 
-	# fo = fetch origin. Used to get a local branch you're not currently on up to date with origin. Usage = fo {branchName}
-	fo = "!f() { git fetch origin $1:$1; }; f"
- 
-	# ood = out of date. This will get any branches that have been deleted on origin, have changes on origin that aren't on the local version, or vice versa
-	ood = ! git branch -vv | grep -iP '(gone|behind|ahead)'
- 
-	# mc = merge commits. This will give you a log of commits that were merged in with a merge commit. Usage = git mc {mergeCommitHash}
-	mc = "!f() { git log $1^1..$1^2; }; f"
- 
-	# lu = log upstream. This will give you a log of all commits that are on origin but aren't on your local. Useful to see what has newly been committed to origin. Usage = git lu {branchName}
-	lu = "!f() { git log $1..origin/$1; }; f"
- 
-	# dc = diff cached. This is just a shorter way to see the changes that have been staged. Any arguments you can add after git diff --cached can be added here (e.g. git dc -- {filePath})
-	dc = "diff --cached"
- 
-	# just a shorter way to amend the latest commit without changing the commit message at all or opening up vim and requiring you to exit it.
-	amend = commit --amend --no-edit
- 
-    # shortcut for better force push
-    pf = ! git push --force-with-lease
- 
-	# delete all client branches
-	dcb = ! git checkout master && git branch --list 'client/*' | xargs git branch -D
- 
-	# delete all client branches
-	cp = ! git cherry-pick $1
- 
-    # delete all local release candidate branches
-    drc = ! git checkout master && git branch --list 'rc/*' | xargs git branch -D
- 
-	# archive - This will connect to the archive remote, copy your branch over to that remote, delete the branch locally and on the origin remote, and then disconnect from the archive remote.
-	arch = "!f() { git remote add archive git@gitlab.bydesigntechnologiesinc.local:bd/bd_archive.git && git push archive refs/remotes/origin/\"$1\":refs/heads/\"$1\" && git dd \"$1\" && git remote rm archive; }; f"
-	# show the difference between two commits (from https://stackoverflow.com/a/44973360)
-	commitdiff = "!bash -c 'O=(); A=(); while x=\"$1\"; shift; do case $x in -*) O+=(\"$x\");; *) A+=(\"$x^{}\");; esac; done; g(){ git show \"${A[$1]}\" && return; echo FAIL ${A[$1]}; git show \"${A[$2]}\"; }; diff \"${O[@]}\" <(g 0 1) <(g 1 0)' --"
-	food = ! git fetch && git ood
-	# commit ammend faster
-	amm = commit --amend --no-edit
-	# delete remote branch the alias dont work
-	drb = ! git push origin --delete $1
-	# delete local branch- dont work
-	db = !git branch -D $1
-	
-	# List my own commits in a branch
-	myc = "!f() { git log --author=\"malu.loynaz\" --oneline $1; }; f"
-	# git log commit that contains text in comment
-	# Usage: git ggc {commentText}	
-	lc = "!f() { git log --grep=\"$1\"; }; f"
-	lb = "!f() { git log \"$1\"; }; f"
-	ltropic = log staging/tropicskincare
-	lbdts7 = log tropic/bdtsandbox7
-    #git ri 3 - interactive rebase last 3 commits , default 2 commits behind HEAD
-	ri = "!f() { git rebase -i HEAD~${1:-2}; }; f"
-	save-i = !git branch \"backup/inventory-prices-bak=$(date +%Y%m%d-%H%M%S)\" save/inventory-price && git checkout save/inventory-price && git reset --hard mlsl/feature/inventory-prices && echo \"Backup created: bak-$(date +%Y%m%d-%H%M%S)\"
-	save-tropic = !git branch \"backup/st-tropic7-bak=$(date +%Y%m%d-%H%M%S)\" save/tropic-staging && git checkout save/tropic-staging && git reset --hard staging/bdtsandbox7_tropic && echo \"Backup created: bak-$(date +%Y%m%d-%H%M%S)\"
-	 # git curr
-	curr = branch --show-current
-	ck = checkout
-	# see recent branches 
-	recent = !git for-each-ref --sort=-committerdate refs/heads/ --format=\"%(refname:short)\" | head -10
-    # files modified in last commit
-	files-last = diff --name-only HEAD~1 HEAD
-	l = log -5 --pretty=format:'%C(cyan)%d%Creset %C(yellow)%an%Creset %C(auto)%h%Creset %s'
-	bdt9 = checkout staging/bdtsandbox9_tropic
-	plr = pull -r 
-	ip = checkout feature/inventoryprices-countryaware
-	fb = "!f(){ git branch --all | grep -i ${1}; };f"
-
-	
-
-
-
-	
-
-	
-
-
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f

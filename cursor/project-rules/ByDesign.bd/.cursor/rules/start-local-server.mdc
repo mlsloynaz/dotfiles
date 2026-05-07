@@ -1,0 +1,126 @@
+---
+description: start-serveDocs / local server — bind dev server to LAN (0.0.0.0), Windows firewall, and publish via tunnel (ngrok / cloudflared). Slash /start-serveDocs loads .cursor/commands/start-serveDocs.md; /stop-serveDocs loads stop-serveDocs.md (port 9000). Use when the user says start-serveDocs, stop-serveDocs, start-local-server, or asks to expose localhost.
+alwaysApply: false
+---
+
+# start-serveDocs / local server — bind locally and share with others
+
+**Default port for commands in this rule:** **`9000`** (change the flag if your process must use another port).
+
+**Quick default (GlobalSkew HTML only):** slash **`/start-serveDocs`** → **`.cursor/commands/start-serveDocs.md`** (OneDrive **`00-InventoryPrices`** `cd` + `npx http-server`, plus **`start-serveDocs.cmd`**). To stop that default server: **`/stop-serveDocs`** → **`.cursor/commands/stop-serveDocs.md`** (or **`stop-serveDocs.cmd`**).
+
+When the user invokes **start-serveDocs**, **stop-serveDocs**, **start-local-server** (legacy wording), or asks to run or stop a dev server others can hit, give **copy-paste commands** for their stack and distinguish three levels:
+
+1. **This machine only** — default `localhost` / `127.0.0.1` (others cannot connect).
+2. **Same LAN** — bind **`0.0.0.0`** (all interfaces) so teammates use `http://YOUR_PC_IP:PORT`. Windows may require an **inbound firewall rule** for that port.
+3. **Internet (publish)** — run a **tunnel** in a second terminal (`ngrok`, `cloudflared`, or `localtunnel`); share the HTTPS URL the tool prints.
+
+---
+
+## Bind so others on the LAN can reach you
+
+- Use port **`9000`** below unless the user asks for a different port.
+- Find your PC’s IPv4: **PowerShell** → `ipconfig` → **Wireless LAN adapter Wi-Fi** / **Ethernet** → **IPv4 Address**.
+- Others browse: `http://192.168.x.x:9000` (not `localhost`).
+
+### Angular (`SOA/Applications/Web/AngularApp`)
+
+From the Angular app folder, pass host through npm:
+
+```powershell
+cd C:\Code\ByDesign.bd\SOA\Applications\Web\AngularApp
+npm run start -- --host 0.0.0.0 --port 9000
+```
+
+Other scripts (examples — add `--` then ng flags):
+
+```powershell
+npm run start:app -- --host 0.0.0.0 --port 9000
+npm run startHttps -- --host 0.0.0.0 --port 9000
+```
+
+### .NET / IIS Express (Kestrel URL)
+
+From the project directory (adjust project path and port):
+
+```powershell
+dotnet run --urls "http://0.0.0.0:9000"
+```
+
+Or set `applicationUrl` in `Properties/launchSettings.json` to use `0.0.0.0` for the profile you run.
+
+### Static HTML (OneDrive / Projects — **not** Angular)
+
+Use this when the goal is a **folder of `.html` + `.js` + `.md`** (e.g. **InventoryPrices-GlobalSkew** hub), not `SOA/.../AngularApp`.
+
+1. **`cd` into the folder that contains the entry `.html`** (same folder as `PD-6109-hub-resources.js`, `sql_scripts/`, `Tests/`, etc.) so **relative** `fetch` / `./` links resolve.
+2. Start a static server on **9000**, bound to all interfaces for LAN:
+
+**GlobalSkew hub (typical path):**
+
+```powershell
+cd "C:\Users\malu.loynaz\OneDrive - ByDesign Technologies\Documents\Projects\00-InventoryPrices"
+npx --yes http-server . -p 9000 -a 0.0.0.0 -o /
+```
+
+3. Open in the browser (examples):
+
+- `http://localhost:9000/` (serves **`index.html`** at the project root; add **`-o /`** on the line above to open automatically)
+- **LAN teammates:** `http://YOUR_IPV4:9000/` (e.g. `http://192.168.75.5:9000/`). **`0.0.0.0` already binds your LAN IP**; the **`:9000`** suffix is required (bare `http://192.168.75.5/` is port **80**, not this server).
+- Direct hub: `http://localhost:9000/InventoryPrices-GlobalSkew.html`
+
+**Why not `file://`:** the hub uses **`fetch`** for Markdown/SQL; browsers often block that from `file://`. **http://** from `http-server` fixes it.
+
+**Other Projects subfolder:** same pattern — `cd` to that folder, then the same `npx http-server` line.
+
+```powershell
+cd "C:\path\to\your\html\folder"
+npx --yes http-server . -p 9000 -a 0.0.0.0
+```
+
+---
+
+## Windows firewall (LAN only)
+
+If peers cannot connect, allow the port once (run elevated **PowerShell**; change **9000** only if you use another port):
+
+```powershell
+New-NetFirewallRule -DisplayName "Dev server 9000" -Direction Inbound -LocalPort 9000 -Protocol TCP -Action Allow
+```
+
+---
+
+## Publish outside the LAN (tunnel)
+
+Use **one** of these in a **second** terminal while the dev server is still running on `localhost` (or `0.0.0.0`).
+
+### Cloudflare Tunnel (quick try)
+
+```powershell
+npx --yes cloudflared tunnel --url http://localhost:9000
+```
+
+Copy the printed `https://....trycloudflare.com` URL and send it to others.
+
+### ngrok (account + install from https://ngrok.com )
+
+```powershell
+ngrok http http://localhost:9000
+```
+
+### localtunnel
+
+```powershell
+npx --yes localtunnel --port 9000
+```
+
+**Security:** tunnel URLs are **public**; do not expose production secrets or unauthenticated admin APIs without understanding the risk.
+
+---
+
+## Checklist for the assistant
+
+- Ask which stack if unclear (**static HTML in OneDrive `Projects\…`** vs Angular vs WebAPI).
+- Prefer **`0.0.0.0`** + **`--port 9000`** (this rule’s default) so URLs are predictable.
+- Mention **HTTPS**: Angular `startHttps` needs certs; tunnels usually give HTTPS automatically for remote viewers.
+- If **CORS** or **API base URL** blocks the client, point them to env / `proxy.conf` / `appSettings` for that environment — binding alone is not enough.

@@ -8,6 +8,7 @@
     The .cursor\skills junction is created in both modes (no admin required for junction).
     User-level Cursor rules (.mdc) are synced from dotfiles\cursor\rules to %USERPROFILE%\.cursor\rules.
     Claude Code user config is synced from dotfiles\claude to %USERPROFILE%\.claude (policy-limits, commands junction, optional settings.json / mcp.json).
+    Git aliases are synced from dotfiles\git\.gitconfig.aliases to %USERPROFILE%\.gitconfig-aliases (included by git\.gitconfig).
 
 .PARAMETER Mode
     Symlinks = create symlinks (run as Administrator)
@@ -132,7 +133,7 @@ function Sync-ClaudeCopy {
             Copy-Item -LiteralPath $src -Destination (Join-Path $claudeHome $name) -Force
             Write-Host "Copied: claude\$name -> $claudeHome\$name"
         } else {
-            Write-Host "Skipped (not in dotfiles): claude\$name — copy from settings.example.json / mcp.example.json if needed."
+            Write-Host "Skipped (not in dotfiles): claude\$name - copy from settings.example.json / mcp.example.json if needed."
         }
     }
 }
@@ -187,6 +188,7 @@ if ($Mode -eq 'Copy') {
         @{ Src = "cursor\settings.json";     Dst = (Join-Path $cursorUser "settings.json") }
         @{ Src = "cursor\keybindings.json";  Dst = (Join-Path $cursorUser "keybindings.json") }
         @{ Src = "cursor\mcp.json";          Dst = (Join-Path $cursorDir "mcp.json") }
+        @{ Src = "git\.gitconfig.aliases";   Dst = (Join-Path $env:USERPROFILE ".gitconfig-aliases") }
         @{ Src = "git\.gitconfig";           Dst = (Join-Path $env:USERPROFILE ".gitconfig") }
         @{ Src = "git\.gitignore_global";    Dst = (Join-Path $env:USERPROFILE ".gitignore_global") }
     )
@@ -235,6 +237,7 @@ $fileLinks = @(
     @{ TargetPath = (Join-Path $cursorUser "settings.json");     LinkTarget = (Join-Path $dotfiles "cursor\settings.json") }
     @{ TargetPath = (Join-Path $cursorUser "keybindings.json");  LinkTarget = (Join-Path $dotfiles "cursor\keybindings.json") }
     @{ TargetPath = (Join-Path $cursorDir "mcp.json");           LinkTarget = (Join-Path $dotfiles "cursor\mcp.json") }
+    @{ TargetPath = (Join-Path $env:USERPROFILE ".gitconfig-aliases"); LinkTarget = (Join-Path $dotfiles "git\.gitconfig.aliases") }
     @{ TargetPath = (Join-Path $env:USERPROFILE ".gitconfig");    LinkTarget = (Join-Path $dotfiles "git\.gitconfig") }
     @{ TargetPath = (Join-Path $env:USERPROFILE ".gitignore_global"); LinkTarget = (Join-Path $dotfiles "git\.gitignore_global") }
 )

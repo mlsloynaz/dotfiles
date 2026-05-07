@@ -7,9 +7,21 @@
         "C:\\Code\\AI-Examples\\mcp\\mcp-sqlserver\\dist\\index.js"
       ],
       "env": {
-        "MSSQL_ENVIRONMENT": "staging",
-        "MSSQL_CLIENT": "QASandbox10",
+        "MSSQL_ENVIRONMENT": "cs",
+        "MSSQL_CLIENT": "newphoenixrising",
         "MSSQL_CONFIG_PATH": "C:\\Users\\malu.loynaz\\credentials\\msp-sql-credentials.json"
+      }
+    },
+    "mssql-dbstaging": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "C:\\Code\\AI-Examples\\mcp\\mcp-sqlserver\\dist\\index.js"
+      ],
+      "env": {
+        "MSSQL_CONNECTION_STRING": "Driver={ODBC Driver 17 for SQL Server};Server=dbcs,9123;Database=lemongrassspa;Trusted_Connection=yes;Encrypt=yes;TrustServerCertificate=yes;",
+        "MSSQL_DATABASE": "lemongrassspa",
+        "MSSQL_WINDOWS_INTEGRATED": "true"
       }
     }
   }

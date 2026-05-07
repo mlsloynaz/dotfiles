@@ -11,7 +11,7 @@ Config files synced to GitHub. Edit here (or in the app); keep this repo as sour
 | `cursor/` | `settings.json`, `keybindings.json`, `mcp.json` | `%APPDATA%\Cursor\User\` and `%USERPROFILE%\.cursor\` |
 | `cursor/skills/` | (folder) | `%USERPROFILE%\.cursor\skills` (junction) |
 | `claude/` | `policy-limits.json`, `commands/`, optional `settings.json` / `mcp.json` (gitignored) | `%USERPROFILE%\.claude\` — see [claude/README.md](claude/README.md) |
-| `git/`   | `.gitconfig`, `.gitignore_global`  | `%USERPROFILE%\` |
+| `git/`   | `.gitconfig`, `.gitconfig.aliases`, `.gitignore_global` | `%USERPROFILE%\` (aliases file is copied or linked as `%USERPROFILE%\.gitconfig-aliases`) |
 
 ## Apply dotfiles (one script)
 

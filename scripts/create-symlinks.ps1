@@ -23,10 +23,13 @@ New-Item -ItemType SymbolicLink -Path $cursorKeybindings -Target (Join-Path $dot
 Write-Host "Cursor symlinks created."
 
 # Git
+$gitconfigAliases = Join-Path $env:USERPROFILE ".gitconfig-aliases"
 $gitconfig = Join-Path $env:USERPROFILE ".gitconfig"
 $gitignoreGlobal = Join-Path $env:USERPROFILE ".gitignore_global"
+Remove-Item $gitconfigAliases -Force -ErrorAction SilentlyContinue
 Remove-Item $gitconfig -Force -ErrorAction SilentlyContinue
 Remove-Item $gitignoreGlobal -Force -ErrorAction SilentlyContinue
+New-Item -ItemType SymbolicLink -Path $gitconfigAliases -Target (Join-Path $dotfiles "git\.gitconfig.aliases") -Force
 New-Item -ItemType SymbolicLink -Path $gitconfig -Target (Join-Path $dotfiles "git\.gitconfig") -Force
 New-Item -ItemType SymbolicLink -Path $gitignoreGlobal -Target (Join-Path $dotfiles "git\.gitignore_global") -Force
 Write-Host "Git symlinks created."

@@ -301,6 +301,9 @@ powershell -ExecutionPolicy Bypass `
 powershell -ExecutionPolicy Bypass `
   -File "$env:USERPROFILE\dotfiles\cursor\scripts\install-to-machine.ps1" `
   -ByDesignRepo C:\Code\bdgit
+
+# Same thing, calling the script directly with & (any drive/path):
+& "$env:USERPROFILE\dotfiles\cursor\scripts\install-to-machine.ps1" -ByDesignRepo "D:\work\ByDesign.bd"
 ```
 
 See [cursor/README.md](cursor/README.md) for details.

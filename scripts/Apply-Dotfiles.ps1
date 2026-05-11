@@ -9,6 +9,7 @@
     User-level Cursor rules (.mdc) are synced from dotfiles\cursor\rules to %USERPROFILE%\.cursor\rules.
     Claude Code user config is synced from dotfiles\claude to %USERPROFILE%\.claude (policy-limits, commands junction, optional settings.json / mcp.json).
     Git aliases are synced from dotfiles\git\.gitconfig.aliases to %USERPROFILE%\.gitconfig-aliases (included by git\.gitconfig).
+    Identity files git\.gitconfig-personal and git\.gitconfig-work are synced to %USERPROFILE%\.gitconfig-personal and .gitconfig-work.
 
 .PARAMETER Mode
     Symlinks = create symlinks (run as Administrator)
@@ -190,6 +191,8 @@ if ($Mode -eq 'Copy') {
         @{ Src = "cursor\mcp.json";          Dst = (Join-Path $cursorDir "mcp.json") }
         @{ Src = "git\.gitconfig.aliases";   Dst = (Join-Path $env:USERPROFILE ".gitconfig-aliases") }
         @{ Src = "git\.gitconfig";           Dst = (Join-Path $env:USERPROFILE ".gitconfig") }
+        @{ Src = "git\.gitconfig-personal"; Dst = (Join-Path $env:USERPROFILE ".gitconfig-personal") }
+        @{ Src = "git\.gitconfig-work";     Dst = (Join-Path $env:USERPROFILE ".gitconfig-work") }
         @{ Src = "git\.gitignore_global";    Dst = (Join-Path $env:USERPROFILE ".gitignore_global") }
     )
     foreach ($p in $pairs) {
@@ -239,6 +242,8 @@ $fileLinks = @(
     @{ TargetPath = (Join-Path $cursorDir "mcp.json");           LinkTarget = (Join-Path $dotfiles "cursor\mcp.json") }
     @{ TargetPath = (Join-Path $env:USERPROFILE ".gitconfig-aliases"); LinkTarget = (Join-Path $dotfiles "git\.gitconfig.aliases") }
     @{ TargetPath = (Join-Path $env:USERPROFILE ".gitconfig");    LinkTarget = (Join-Path $dotfiles "git\.gitconfig") }
+    @{ TargetPath = (Join-Path $env:USERPROFILE ".gitconfig-personal"); LinkTarget = (Join-Path $dotfiles "git\.gitconfig-personal") }
+    @{ TargetPath = (Join-Path $env:USERPROFILE ".gitconfig-work"); LinkTarget = (Join-Path $dotfiles "git\.gitconfig-work") }
     @{ TargetPath = (Join-Path $env:USERPROFILE ".gitignore_global"); LinkTarget = (Join-Path $dotfiles "git\.gitignore_global") }
 )
 

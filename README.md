@@ -16,7 +16,7 @@ Config files synced to GitHub. This repo is the source of truth for Cursor AI, C
 1. [ ] Decide your ByDesign repo path (e.g. `C:\Code\ByDesign.bd` or `C:\Code\bdgit`)
 2. [ ] Install prerequisites — then run `scripts\Check-Requirements.ps1` to verify
 3. [ ] Clone this repo to `%USERPROFILE%\dotfiles`
-4. [ ] Create Git identity files (personal + work)
+4. [ ] Edit Git identity in `git\.gitconfig-personal` and `git\.gitconfig-work` (then apply dotfiles)
 5. [ ] Authenticate with GitHub (`gh auth login`)
 6. [ ] Run `Apply-Dotfiles.ps1 -Mode Copy`
 7. [ ] Fill in MCP secrets (Jira token, SQL server)
@@ -161,24 +161,18 @@ git clone https://github.com/malu-loynaz/dotfiles.git dotfiles
 
 ## 3. Git identity
 
-The `.gitconfig` in this repo uses `[include]` and `[includeIf]` — it does **not** embed your name or email. Create these two files locally (not committed):
+The main `git\.gitconfig` uses `[include]` and `[includeIf]` — it does **not** embed your name or email. Identity lives in the repo under **`git/`**:
 
-**`%USERPROFILE%\.gitconfig-personal`**
-```ini
-[user]
-    name  = Maria Lourdes Sierra-Loynaz
-    email = your-personal@email.com
-```
+| File in dotfiles | Deployed to |
+|------------------|-------------|
+| `git\.gitconfig-personal` | `%USERPROFILE%\.gitconfig-personal` |
+| `git\.gitconfig-work` | `%USERPROFILE%\.gitconfig-work` |
 
-**`%USERPROFILE%\.gitconfig-work`**
-```ini
-[user]
-    name  = Maria Lourdes Sierra-Loynaz
-    email = malu.loynaz@bydesign.com
-    signingkey =
-```
+Edit **`git\.gitconfig-personal`** and **`git\.gitconfig-work`** in this repo (placeholders: `Your Name`, `your-personal-email@example.com`, `your-work-email@example.com`). Then run **`Apply-Dotfiles.ps1`** so copies or symlinks land in your profile. **Symlinks mode:** editing the files under `%USERPROFILE%\dotfiles\git\` is enough; **Copy mode:** re-run apply after edits.
 
-The work identity activates automatically for repos under the paths listed in `[includeIf]` blocks inside `git\.gitconfig`. **If your ByDesign repo is not at `C:/Code/ByDesign.bd/`**, open `%USERPROFILE%\.gitconfig` after applying dotfiles and update those two paths to match your actual location (e.g. `C:/Code/bdgit/`).
+If this repo is **public**, avoid committing real personal addresses; use private repo or local-only overrides.
+
+The work identity activates automatically for repos under the paths listed in `[includeIf]` blocks inside `git\.gitconfig`. **If your ByDesign repo is not at `C:/Code/ByDesign.bd/`**, open `git\.gitconfig` (or `%USERPROFILE%\.gitconfig` after apply) and update those paths to match your actual location (e.g. `C:/Code/bdgit/`).
 
 ---
 
@@ -222,6 +216,8 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 | `claude\settings.json` *(if present)* | `%USERPROFILE%\.claude\settings.json` |
 | `claude\mcp.json` *(if present)* | `%USERPROFILE%\.claude\mcp.json` |
 | `git\.gitconfig` | `%USERPROFILE%\.gitconfig` |
+| `git\.gitconfig-personal` | `%USERPROFILE%\.gitconfig-personal` |
+| `git\.gitconfig-work` | `%USERPROFILE%\.gitconfig-work` |
 | `git\.gitconfig.aliases` | `%USERPROFILE%\.gitconfig-aliases` |
 | `git\.gitignore_global` | `%USERPROFILE%\.gitignore_global` |
 | `bd-repo.cursor\` | `%USERPROFILE%\bd-repo.cursor\` |
@@ -356,7 +352,7 @@ powershell -ExecutionPolicy Bypass `
 
 **If your path differs from `C:\Code\ByDesign.bd`**, also update these two things:
 
-1. `%USERPROFILE%\.gitconfig` — the two `[includeIf "gitdir:..."]` lines (so work identity activates)
+1. `git\.gitconfig` in dotfiles (or `%USERPROFILE%\.gitconfig` after apply) — the two `[includeIf "gitdir:..."]` lines (so work identity activates)
 2. `%USERPROFILE%\credentials\connect-staging-db.ps1` — the `mcp_path` and file paths hardcoded near the top of that script
 
 ---
@@ -414,8 +410,10 @@ dotfiles/
 │   ├── settings.json
 │   └── README.md
 ├── git/                   # Git global config
-│   ├── .gitconfig         # Core config (identity via [include])
-│   ├── .gitconfig.aliases # All git aliases
+│   ├── .gitconfig             # Core config (identity via [include])
+│   ├── .gitconfig-personal    # Personal [user] (edit placeholders)
+│   ├── .gitconfig-work        # Work [user] (edit placeholders)
+│   ├── .gitconfig.aliases     # All git aliases
 │   └── .gitignore_global
 ├── scripts/
 │   ├── Apply-Dotfiles.ps1 # Main apply script
@@ -537,7 +535,7 @@ git push
 
 | What | Why |
 |---|---|
-| `~\.gitconfig-personal`, `~\.gitconfig-work` | Identity — create manually (step 3) |
+| Real emails in `git\.gitconfig-*` | If repo is public, keep placeholders or use a private fork |
 | `claude\settings.json`, `claude\mcp.json` | May contain API tokens — use `*.example.json` |
 | `~\.claude\.credentials.json` | Auth token — re-run `claude` to authenticate |
 | `~\.claude\sessions\`, `cache\`, `history.jsonl` | Machine-local runtime data |

@@ -1,0 +1,5 @@
+# Personal Git identity (default for all repos except work paths in .gitconfig).
+# Edit name/email here, then re-run scripts\Apply-Dotfiles.ps1 if you use -Mode Copy.
+[user]
+	name = Your Name
+	email = your-personal-email@example.com

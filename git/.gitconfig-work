@@ -1,0 +1,6 @@
+# Work Git identity (used for repos matching [includeIf "gitdir:..."] in .gitconfig).
+# Edit name/email/signingkey here, then re-run scripts\Apply-Dotfiles.ps1 if you use -Mode Copy.
+[user]
+	name = Your Name
+	email = your-work-email@example.com
+	signingkey =

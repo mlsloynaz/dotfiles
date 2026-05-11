@@ -18,7 +18,7 @@ Config files synced to GitHub. This repo is the source of truth for Cursor AI, C
 3. [ ] Clone this repo to `%USERPROFILE%\dotfiles`
 4. [ ] Edit Git identity in `git\.gitconfig-personal` and `git\.gitconfig-work` (then apply dotfiles)
 5. [ ] Authenticate with GitHub (`gh auth login`)
-6. [ ] Run `Apply-Dotfiles.ps1 -Mode Copy`
+6. [ ] Run apply from dotfiles folder: `.\scripts\Apply-Dotfiles.ps1 -Mode Copy` (see §5)
 7. [ ] Fill in MCP secrets (Jira token, SQL server)
 8. [ ] Authenticate Claude Code (`claude`)
 9. [ ] Sign into Cursor AI
@@ -189,7 +189,16 @@ This also configures `git credential.helper` to use `gh auth git-credential`, wh
 
 ## 5. Apply dotfiles
 
-**Without admin (copy mode):**
+**Without admin (copy mode):** run from your profile dotfiles clone. Use **`.\scripts\...`** so PowerShell finds the script (typing `Apply-Dotfiles.ps1` alone is not a command).
+
+```powershell
+Set-Location $env:USERPROFILE\dotfiles
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+.\scripts\Apply-Dotfiles.ps1 -Mode Copy
+```
+
+From any directory you can use the full path instead:
+
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 & "$env:USERPROFILE\dotfiles\scripts\Apply-Dotfiles.ps1" -Mode Copy

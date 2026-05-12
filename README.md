@@ -365,7 +365,7 @@ powershell -ExecutionPolicy Bypass `
 **If your path differs from `C:\Code\ByDesign.bd`**, also update these two things:
 
 1. `git\.gitconfig` in dotfiles (or `%USERPROFILE%\.gitconfig` after apply) — the two `[includeIf "gitdir:..."]` lines (so work identity activates)
-2. `%USERPROFILE%\credentials\connect-staging-db.ps1` — the `mcp_path` and file paths hardcoded near the top of that script
+2. **`BYDESIGN_REPO` environment variable** (optional) — if your clone is not at `c:/Code/ByDesign.bd`, set it to that folder so `connect-staging-db.ps1` writes MCP under the same project key Claude Code uses (forward slashes are fine). Example before switching DB: `$env:BYDESIGN_REPO = "D:/work/ByDesign.bd"`
 
 ---
 
@@ -396,7 +396,7 @@ The `credentials\` folder (synced by the apply script) contains:
 
 Windows Integrated Authentication is used for staging SQL connections — the ODBC connection string uses `Trusted_Connection=yes`. You must be connected to the ByDesign domain/VPN for it to work.
 
-> **Path adjustment:** `connect-staging-db.ps1` hardcodes your user profile path in two `open(r'C:\Users\malu.loynaz\...')` calls near the bottom of the Python block. Edit those lines if the username differs on the new machine.
+**Claude Code `%USERPROFILE%\.claude.json`:** the switch script merges MCP under `projects.<folderPath>.mcpServers`. If `projects` was missing or not an object (fresh PC), older script versions could error; the current script creates a valid tree. If Claude still shows the wrong MCP, set **`BYDESIGN_REPO`** (or **`CLAUDE_PROJECT_KEY`**) to your ByDesign folder path so it matches the project entry Claude created (same path style as in `.claude.json` keys).
 
 ---
 

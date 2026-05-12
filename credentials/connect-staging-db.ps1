@@ -4,10 +4,13 @@ param(
 )
 
 $pythonScript = @'
-import json, sys
+import json, sys, os
 
 raw = sys.argv[1]
-config_path = r'C:\Users\malu.loynaz\credentials\msp-sql-credentials.json'
+user = os.environ['USERPROFILE']
+config_path = os.path.join(user, 'credentials', 'msp-sql-credentials.json')
+claude_path = os.path.join(user, '.claude.json')
+cursor_mcp_path = os.path.join(user, '.cursor', 'mcp.json')
 server_name = 'mssql'
 mcp_package = 'mssql-mcp@latest'
 
@@ -54,6 +57,20 @@ def connection_string_to_db_env(parts):
         if pwd:
             env['DB_PASSWORD'] = pwd
     return env, trusted
+
+
+def load_json_object(path, default):
+    if not os.path.isfile(path):
+        return default
+    try:
+        with open(path, encoding='utf-8') as f:
+            text = f.read().strip()
+        if not text:
+            return default
+        data = json.loads(text)
+        return data if isinstance(data, dict) else default
+    except (json.JSONDecodeError, OSError, TypeError):
+        return default
 
 
 # --- Shorthand resolution (same client keys as in msp-sql-credentials.json) ---
@@ -186,24 +203,34 @@ new_entry = {
     'env': db_env,
 }
 
-# ~/.claude.json (ByDesign.bd project)
-with open(r'C:\Users\malu.loynaz\.claude.json', encoding='utf-8') as f:
-    claude = json.load(f)
-project_key = 'c:/Code/ByDesign.bd'
-proj = claude.setdefault('projects', {}).setdefault(project_key, {})
-ms = proj.setdefault('mcpServers', {})
+# ~/.claude.json — Claude Code expects a top-level "projects" object. Fresh or
+# minimal files may omit it; never assume claude["projects"] exists.
+claude = load_json_object(claude_path, {})
+raw_key = os.environ.get('BYDESIGN_REPO') or os.environ.get('CLAUDE_PROJECT_KEY') or 'c:/Code/ByDesign.bd'
+project_key = raw_key.replace('\\', '/')
+if not isinstance(claude.get('projects'), dict):
+    claude['projects'] = {}
+proj = claude['projects'].get(project_key)
+if not isinstance(proj, dict):
+    proj = {}
+    claude['projects'][project_key] = proj
+if not isinstance(proj.get('mcpServers'), dict):
+    proj['mcpServers'] = {}
+ms = proj['mcpServers']
 ms[server_name] = new_entry
 ms.pop('mssql-dbstaging', None)
-with open(r'C:\Users\malu.loynaz\.claude.json', 'w', encoding='utf-8') as f:
+os.makedirs(os.path.dirname(claude_path), exist_ok=True)
+with open(claude_path, 'w', encoding='utf-8') as f:
     json.dump(claude, f, indent=2)
-print('Claude Code: updated')
+print('Claude Code: updated (' + project_key + ')')
 
-with open(r'C:\Users\malu.loynaz\.cursor\mcp.json', encoding='utf-8') as f:
-    cursor = json.load(f)
-cursor.setdefault('mcpServers', {})
+cursor = load_json_object(cursor_mcp_path, {'mcpServers': {}})
+if 'mcpServers' not in cursor or not isinstance(cursor['mcpServers'], dict):
+    cursor['mcpServers'] = {}
 cursor['mcpServers'][server_name] = new_entry
 cursor['mcpServers'].pop('mssql-dbstaging', None)
-with open(r'C:\Users\malu.loynaz\.cursor\mcp.json', 'w', encoding='utf-8') as f:
+os.makedirs(os.path.dirname(cursor_mcp_path), exist_ok=True)
+with open(cursor_mcp_path, 'w', encoding='utf-8') as f:
     json.dump(cursor, f, indent=2)
 print('Cursor:      updated')
 auth = 'Trusted_Connection' if trusted else 'SQL auth'

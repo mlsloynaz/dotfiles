@@ -29,7 +29,7 @@ try {
 # --- pip install ---
 Write-Host ""
 Write-Host "Installing Python packages (mcp, pyodbc)..." -ForegroundColor Cyan
-pip install mcp pyodbc
+python -m pip install mcp pyodbc
 if ($LASTEXITCODE -ne 0) {
     Write-Error "pip install failed."
     exit 1

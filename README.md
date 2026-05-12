@@ -85,7 +85,7 @@ Check whether each tool is already installed first. Only follow the install step
 
 **Install if missing:**
 ```powershell
-pip install mcp pyodbc
+python -m pip install mcp pyodbc
 ```
 
 Or run `scripts\Setup-Foundation.ps1` which checks and installs both.

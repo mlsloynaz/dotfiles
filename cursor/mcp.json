@@ -2,14 +2,14 @@
   "mcpServers": {
     "mssql": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "mssql-mcp@latest"],
+      "command": "node",
+      "args": [
+        "C:\\Code\\AI-Examples\\mcp\\mcp-sqlserver\\dist\\index.js"
+      ],
       "env": {
-        "DB_SERVER": "dbcs",
-        "DB_PORT": "9123",
-        "DB_DATABASE": "newphoenixrising",
-        "DB_ENCRYPT": "true",
-        "DB_TRUST_SERVER_CERTIFICATE": "true"
+        "MSSQL_CONNECTION_STRING": "Driver={ODBC Driver 17 for SQL Server};Server=192.168.100.65,9123;Database=lemongrassspa;Trusted_Connection=yes;Encrypt=yes;TrustServerCertificate=yes;",
+        "MSSQL_DATABASE": "lemongrassspa",
+        "MSSQL_WINDOWS_INTEGRATED": "true"
       }
     }
   }

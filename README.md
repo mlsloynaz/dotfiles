@@ -19,11 +19,12 @@ Config files synced to GitHub. This repo is the source of truth for Cursor AI, C
 4. [ ] Edit Git identity in `git\.gitconfig-personal` and `git\.gitconfig-work` (then apply dotfiles)
 5. [ ] Authenticate with GitHub (`gh auth login`)
 6. [ ] Run apply from dotfiles folder: `.\scripts\Apply-Dotfiles.ps1 -Mode Copy` (see §5)
-7. [ ] Fill in MCP secrets (Jira token, SQL server)
-8. [ ] Authenticate Claude Code (`claude`)
-9. [ ] Sign into Cursor AI
-10. [ ] Clone ByDesign repo to your chosen path and apply project rules
-11. [ ] Add `dotfiles\bin` to `PATH`
+7. [ ] Set up SQL MCP: run `scripts\Setup-Foundation.ps1`, `Setup-Claude.ps1`, `Setup-Cursor.ps1`
+8. [ ] Fill in MCP secrets (Jira token): edit `claude\mcp.json`
+9. [ ] Authenticate Claude Code (`claude`)
+10. [ ] Sign into Cursor AI
+11. [ ] Clone ByDesign repo to your chosen path and apply project rules
+12. [ ] Add `dotfiles\bin` to `PATH`
 
 ---
 
@@ -77,6 +78,17 @@ Check whether each tool is already installed first. Only follow the install step
 2. Download Python 3.12.x Windows installer
 3. Run it — **check "Add python.exe to PATH"** before clicking Install
 4. Open a new terminal and verify with `python --version`
+
+### Python packages (mcp, pyodbc) — required for SQL MCP
+
+**Check:** `pip show mcp pyodbc`
+
+**Install if missing:**
+```powershell
+pip install mcp pyodbc
+```
+
+Or run `scripts\Setup-Foundation.ps1` which checks and installs both.
 
 ---
 
@@ -411,7 +423,11 @@ dotfiles/
 │   ├── mcp.example.json   # MCP template (fill in secrets → save as mcp.json)
 │   ├── settings.example.json
 │   └── README.md
-├── credentials/           # DB connection helpers (machine-local secrets NOT committed)
+├── credentials/           # DB connection helpers
+│   ├── mcp-mssql/         # Python MCP server for SQL Server (pyodbc + Windows auth)
+│   │   └── server.py
+│   ├── connect-staging-db.ps1
+│   └── msp-sql-credentials.json
 ├── cursor/                # Cursor AI user config
 │   ├── project-rules/     # Per-repo AI rules (ByDesign.bd backup)
 │   ├── rules/             # Global Cursor user rules (.mdc)
@@ -428,7 +444,12 @@ dotfiles/
 │   ├── .gitconfig.aliases     # All git aliases
 │   └── .gitignore_global
 ├── scripts/
-│   ├── Apply-Dotfiles.ps1 # Main apply script
+│   ├── Apply-Dotfiles.ps1     # Main apply script
+│   ├── Check-Requirements.ps1 # Verify prerequisites
+│   ├── Setup-Foundation.ps1   # pip install mcp pyodbc + ODBC check
+│   ├── Setup-Claude.ps1       # Inject mssql MCP into ~/.claude.json
+│   ├── Setup-Cursor.ps1       # Inject mssql MCP into ~/.cursor/mcp.json
+│   ├── Setup-Git.ps1          # Apply git config + gh auth login
 │   └── create-symlinks.ps1
 └── .gitignore             # Excludes claude/settings.json and claude/mcp.json
 ```
@@ -476,17 +497,31 @@ Gives Claude access to Jira issues, projects, and comments.
   ```
 - Alternatively, Atlassian offers an OAuth-based SSE endpoint (`https://mcp.atlassian.com/v1/sse`) that Claude Code can authenticate with via browser — no token needed, but requires re-auth on new machines.
 
-#### `mssql-*` (SQL Server databases)
+#### `mssql` (SQL Server — switchable)
 
-Four entries cover different servers/clients: `mssql-QASandbox8`, `mssql-QASandbox10`, `mssql-dbstaging`, `mssql-dbcs`.
+A single switchable entry backed by a Python + pyodbc server. No npm, no native drivers.
 
 - **Needs:**
-  - mcp-sqlserver built at `C:\Code\AI-Examples\mcp\mcp-sqlserver\dist\index.js`
+  - Python 3 with `mcp` and `pyodbc` packages (`pip install mcp pyodbc`)
   - ODBC Driver 17 for SQL Server
   - VPN / domain connection for staging servers
+  - `credentials\mcp-mssql\server.py` deployed by `Apply-Dotfiles.ps1`
 - **Auth:** Windows Integrated Authentication — `Trusted_Connection=yes` — no passwords in config
-- **Credentials file** (`credentials\msp-sql-credentials.json`): contains server address and database per environment. Edit this file locally after the `credentials\` folder is applied; it is not committed with real values.
-- **Switching databases:** use the `/dbstaging` Claude command or run `credentials\connect-staging-db.ps1 db-stg-<client>`. This updates the active MCP connection at runtime.
+- **First-time setup on a new machine:**
+  ```powershell
+  # 1. Install Python packages and verify ODBC
+  .\scripts\Setup-Foundation.ps1
+  # 2. Inject mssql entry into Claude Code
+  .\scripts\Setup-Claude.ps1
+  # 3. Inject mssql entry into Cursor
+  .\scripts\Setup-Cursor.ps1
+  ```
+- **Switching databases:** use the `/dbstaging` Claude command or run:
+  ```powershell
+  credentials\connect-staging-db.ps1 db-stg-qa8
+  credentials\connect-staging-db.ps1 db-cs-nefful
+  ```
+  Then reload VS Code window (Ctrl+Shift+P → Developer: Reload Window).
 
 ---
 
@@ -495,11 +530,11 @@ Four entries cover different servers/clients: `mssql-QASandbox8`, `mssql-QASandb
 Config file (after applying dotfiles): `%USERPROFILE%\.cursor\mcp.json`
 Source in dotfiles: `dotfiles\cursor\mcp.json` (committed; update per machine as needed)
 
-#### SQL Server (commercial MCP)
+#### SQL Server (mssql)
 
-Cursor uses the commercial SQL MCP — no local build required. The exact MCP entry in `cursor\mcp.json` reflects the current commercial provider; update it per machine as needed.
+Cursor uses the same Python + pyodbc server as Claude Code. Run `scripts\Setup-Cursor.ps1` after `Setup-Foundation.ps1` on a new machine.
 
-- **Needs:** ODBC Driver 17 for SQL Server + VPN for staging servers
+- **Needs:** Python 3, `mcp` + `pyodbc` packages, ODBC Driver 17 for SQL Server, VPN for staging
 - **Auth:** Windows Integrated Authentication — `Trusted_Connection=yes` — no passwords in config
 - **Database:** switched at runtime by `connect-staging-db.ps1 db-stg-<client>`
 
